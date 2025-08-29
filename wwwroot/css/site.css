@@ -1,0 +1,115 @@
+﻿/* Global site styles
+   ------------------------------------------------------------------
+   NOTE: This file mixes bootstrap overrides and custom styles.
+   Keep selectors specific to avoid unintended side effects.
+*/
+
+/* Brand treatment in navbar: wrap text and prevent overflow */
+a.navbar-brand {
+    white-space: normal;
+    text-align: center;
+    word-break: break-all;
+}
+
+/* Provide sufficient contrast against white background for links */
+a {
+    color: #0366d6;
+}
+
+/* Primary button override (Bootstrap-like palette) */
+.btn-primary {
+    color: #fff;
+    background-color: #1b6ec2;
+    border-color: #1861ac;
+}
+
+/* Active pills styling to match primary color */
+.nav-pills .nav-link.active, .nav-pills .show > .nav-link {
+    color: #fff;
+    background-color: #1b6ec2;
+    border-color: #1861ac;
+}
+
+/* Typography base size (mobile-first)
+   ------------------------------------------------------------------
+   NOTE: font-size is defined twice in this file (mobile + media query).
+   That’s fine; just keep them together for clarity.
+*/
+html {
+    font-size: 14px;
+}
+
+@media (min-width: 768px) {
+    html {
+        font-size: 16px;
+    }
+}
+
+/* Utility borders + shadow helpers */
+.border-top {
+    border-top: 1px solid #e5e5e5;
+}
+
+.border-bottom {
+    border-bottom: 1px solid #e5e5e5;
+}
+
+.box-shadow {
+    box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .05);
+}
+
+/* Cookie/consent policy button style */
+button.accept-policy {
+    font-size: 1rem;
+    line-height: inherit;
+}
+
+/* Sticky footer approach
+   ------------------------------------------------------------------
+   Positions a short footer at the bottom for short pages.
+   NOTE: This uses absolute positioning; on very tall/scroll-heavy pages
+   you might prefer a flexbox-based sticky footer to avoid overlap.
+*/
+html {
+    position: relative;
+    min-height: 100%;
+}
+
+body {
+    /* Reserve space for footer height */
+    margin-bottom: 60px;
+}
+
+.footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    white-space: nowrap;
+    line-height: 60px; /* Vertically center the text there */
+}
+
+/* UI sugar: soft “pill” button used on Privacy page */
+.btn-soft-pill {
+    border-radius: 9999px;
+    padding: .6rem 1.1rem;
+    box-shadow: 0 8px 18px rgba(10,102,194,.18); /* soft shadow */
+}
+
+/* Brand variant: LinkedIn-style button */
+.btn-linkedin {
+    background-color: #0A66C2;
+    border-color: #0A66C2;
+    color: #fff !important;
+}
+
+    .btn-linkedin:hover,
+    .btn-linkedin:focus {
+        background-color: #0d50a5;
+        border-color: #0d50a5;
+        color: #fff !important;
+    }
+
+/* Icon spacing inside pill buttons */
+.btn-soft-pill .bi {
+    margin-right: .4rem;
+}

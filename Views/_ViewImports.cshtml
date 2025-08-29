@@ -1,0 +1,9 @@
+﻿@* Shared imports for Razor views in this folder (and subfolders).
+   - @using: makes namespaces available without fully-qualified names
+   - @addTagHelper: enables built-in tag helpers like <form asp-action="..."> *@
+
+@using DotNetCoreCalendar          @* Access app types without full namespace *@
+@using DotNetCoreCalendar.Models  @* Access model types directly in views *@
+
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@* Enables built-in MVC tag helpers (forms, anchors, environment, validation, etc.). *@

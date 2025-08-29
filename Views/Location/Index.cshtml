@@ -1,0 +1,43 @@
+﻿@model IEnumerable<DotNetCoreCalendar.Models.Location>
+
+@{
+    // Page metadata and explicit layout selection (optional if _ViewStart already sets it)
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h1>Locations</h1>
+
+@* Optional alert passed via ViewData (e.g., after an action). *@
+@if (ViewData["Alert"] != null)
+{
+    <h3>@ViewData["Alert"]</h3>
+}
+
+<p>
+    @* Link to create a new Location (LocationController.Create). *@
+    <a asp-controller="Location" asp-action="Create">Create New</a>
+</p>
+
+@* Simple table listing all locations with action links. *@
+<table class="table">
+    <thead>
+        <tr>
+            <th>@Html.DisplayNameFor(model => model.Name)</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@Html.DisplayFor(modelItem => item.Name)</td>
+                <td>
+                    <a asp-controller="Location" asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
+                    <a asp-controller="Location" asp-action="Details" asp-route-id="@item.Id">Details</a> |
+                    <a asp-controller="Location" asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

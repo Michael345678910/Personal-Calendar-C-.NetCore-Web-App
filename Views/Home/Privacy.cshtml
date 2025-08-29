@@ -1,0 +1,212 @@
+﻿@{
+    // Title for the page (used by layout)
+    ViewData["Title"] = "Privacy & Policy Information";
+
+    // NOTE: Avoid placing HTML markup inside a Razor code block.
+    // I’ve moved the alert below the block to keep the file valid Razor.
+    var lastUpdated = "August 2025";
+}
+
+@* Demo-only banner shown on this page. Safe to remove in production. *@
+<div class="alert alert-warning d-print-none" role="alert">
+    <strong>Demo notice:</strong> This Privacy page is for demonstration purposes only and does not describe a live service.
+    Data you enter in this build is stored locally on your device (e.g., a local database) unless you choose to export or upload it elsewhere.
+</div>
+
+<style>
+    /* Card-like <details> accordion styling */
+    details.policy-item {
+        border: 1px solid #e5e7eb;
+        border-radius: 0.75rem;
+        background: #fff;
+    }
+
+        details.policy-item + details.policy-item {
+            margin-top: .75rem;
+        }
+
+        details.policy-item > summary {
+            list-style: none;
+            cursor: pointer;
+            padding: .9rem 1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+        }
+
+            details.policy-item > summary::marker {
+                display: none;
+            }
+
+        details.policy-item[open] > summary {
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        details.policy-item .body {
+            padding: 1rem;
+        }
+
+    .container-narrow {
+        max-width: 900px;
+        margin: 1.5rem auto;
+    }
+</style>
+
+<section class="container-narrow">
+    <h1 class="display-6 mb-1">@ViewData["Title"]</h1>
+    <p class="text-muted">Last updated: @lastUpdated</p>
+
+    <!-- Contents / quick links to sections -->
+    <div class="card mb-3">
+        <div class="card-body">
+            <strong>Contents</strong>
+            <ol class="m-0 ps-3">
+                <li><a href="#s1">What Information Do We Collect?</a></li>
+                <li><a href="#s2">How Do We Use Your Collected Information</a></li>
+                <li><a href="#s3">Who Do We Share Your Collected Information With</a></li>
+                <li><a href="#s4">Cookies & Analytics</a></li>
+                <li><a href="#s5">Data Retention Statement</a></li>
+                <li><a href="#s6">Security</a></li>
+                <li><a href="#s7">Your Rights To Withdraw/Delete Your Information</a></li>
+                <li><a href="#s8">Children’s Privacy Policy</a></li>
+                <li><a href="#s9">Policy Update Information</a></li>
+                <li><a href="#s10">Contact Information</a></li>
+            </ol>
+        </div>
+    </div>
+
+    @* Section 1: collection categories *@
+    <details id="s1" class="policy-item" open>
+        <summary>1). What Information Do We Collect?</summary>
+        <div class="body">
+            <ul>
+                <li><strong>Account Information:</strong> If you sign in or create an account, we may collect your name, email, and authentication data.</li>
+                <li><strong>Calendar Data:</strong> Event titles, descriptions, times, locations/resources, and event metadata you add.</li>
+                <li><strong>Usage Data:</strong> Pages visited and features used for analytics/debugging.</li>
+                <li><strong>Device Data:</strong> Browser/OS info for troubleshooting.</li>
+                <li><strong>Cookies:</strong> Preference/session cookies (see section 4).</li>
+            </ul>
+        </div>
+    </details>
+
+    @* Section 2: processing purposes *@
+    <details id="s2" class="policy-item">
+        <summary>2). How Do We Use Your Collected Information</summary>
+        <div class="body">
+            <ul>
+                <li>Maintain and improve features, performance, reliability, and UX.</li>
+                <li>Detect, prevent, and address errors/abuse/security incidents.</li>
+                <li>Send important service/policy updates to your contact email.</li>
+                <li><em>(If applicable)</em> With consent, send tips/marketing; you can opt out anytime.</li>
+            </ul>
+        </div>
+    </details>
+
+    @* Section 3: sharing *@
+    <details id="s3" class="policy-item">
+        <summary>3). Who Do We Share Your Collected Information With</summary>
+        <div class="body">
+            <p>We don’t sell personal information. We may share with:</p>
+            <ul>
+                <li><strong>Service Providers:</strong> Hosting or development partners under confidentiality/security obligations.</li>
+                <li><strong>Legal/Compliance:</strong> If required to comply with law or protect rights/safety.</li>
+                <li><strong>Ownership Transfers:</strong> In a merger/acquisition. <em>NOTE:</em> Adjust real-world notice periods to your jurisdiction/policy.</li>
+            </ul>
+        </div>
+    </details>
+
+    @* Section 4: cookies + simple toggles persisted via localStorage *@
+    <details id="s4" class="policy-item">
+        <summary>4). Cookies & Analytics</summary>
+        <div class="body">
+            <p>We use essential cookies (sign-in/preferences). Optional analytics/marketing cookies can be toggled below.</p>
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="cookies_analytics">
+                <label class="form-check-label" for="cookies_analytics">Allow Cookies For Analytics</label>
+            </div>
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="cookies_marketing">
+                <label class="form-check-label" for="cookies_marketing">Allow Cookies For Marketing</label>
+            </div>
+            <small class="text-muted d-block mt-2">Your choices are stored in your browser.</small>
+        </div>
+    </details>
+
+    @* Section 5: retention *@
+    <details id="s5" class="policy-item">
+        <summary>5). Data Retention Statement</summary>
+        <div class="body">
+            <p>We retain personal data only as needed to provide the calendar service and meet legal obligations. You may request deletion (see section 7).</p>
+        </div>
+    </details>
+
+    @* Section 6: security disclaimer *@
+    <details id="s6" class="policy-item">
+        <summary>6). Security</summary>
+        <div class="body">
+            <p>We apply reasonable technical and organizational measures. No system is 100% secure.</p>
+        </div>
+    </details>
+
+    @* Section 7: user rights/controls *@
+    <details id="s7" class="policy-item">
+        <summary>7). Your Rights To Withdraw/Delete Your Information</summary>
+        <div class="body">
+            <p>Depending on your location/age, you may have rights to delete data or withdraw consent.</p>
+            <div class="d-flex flex-wrap gap-2 mt-2">
+                <a class="btn btn-primary" href="/Privacy/Request">Submit a Privacy Request</a>
+                <a class="btn btn-outline-danger" href="/Account/Delete">Delete Your Account</a>
+                <button class="btn btn-outline-secondary" type="button" onclick="window.print()">Print This Policy Page</button>
+            </div>
+        </div>
+    </details>
+
+    @* Section 8: children *@
+    <details id="s8" class="policy-item">
+        <summary>8). Children’s Privacy Policy</summary>
+        <div class="body">
+            <p>This application isn’t intended for children under 13 (or local minimum age). Contact us to remove any such data.</p>
+        </div>
+    </details>
+
+    @* Section 9: updates *@
+    <details id="s9" class="policy-item">
+        <summary>9). Policy Update Information</summary>
+        <div class="body">
+            <p>We’ll update the “Last updated” date for material changes and may prompt you to accept new terms.</p>
+        </div>
+    </details>
+
+    @* Section 10: contact *@
+    <details id="s10" class="policy-item">
+        <summary>10). Contact Information</summary>
+        <div class="body">
+            <p><strong>Website Owner:</strong> Michael Pallwitz</p>
+            <p>
+                <a class="btn btn-linkedin btn-soft-pill d-inline-flex align-items-center"
+                   href="https://www.linkedin.com/in/michael-pallwitz/"
+                   target="_blank" rel="noopener noreferrer" aria-label="Connect on LinkedIn (opens in new tab)">
+                    <i class="bi bi-linkedin" aria-hidden="true"></i>
+                    Connect Or Contact me on LinkedIn
+                </a>
+            </p>
+            <p><strong>Example Address:</strong> 123 Motivation St, Chicago, IL, 60007, United States</p>
+        </div>
+    </details>
+</section>
+
+@section Scripts {
+    <script>
+        // Persist simple cookie preference toggles in localStorage (client-side only demo).
+        (function () {
+            ['cookies_analytics', 'cookies_marketing'].forEach(function (k) {
+                var el = document.getElementById(k);
+                if (!el) return;
+                var saved = localStorage.getItem(k);
+                if (saved !== null) el.checked = saved === 'true';
+                el.addEventListener('change', function () { localStorage.setItem(k, el.checked); });
+            });
+        })();
+    </script>
+}

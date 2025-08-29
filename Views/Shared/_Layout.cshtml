@@ -1,0 +1,99 @@
+﻿@* Application master layout. Defines HTML skeleton, loads styles/scripts, and renders body + sections. *@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Your Personal Calendar App</title>
+
+    <!-- Styles -->
+    @* Local bundles: keep order (bootstrap first, then fonts/themes, then site overrides). *@
+    <link rel="stylesheet" href="~/css/bootstrap.css" />
+    <link rel="stylesheet" href="~/css/font-awesome.min.css" />
+    <link rel="stylesheet" href="~/css/prism-okaidia.css" />
+    <link rel="stylesheet" href="~/css/main.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
+    @* CDN icon set for Bootstrap Icons (optional, complements Font Awesome). *@
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+</head>
+
+@* Demo banner (site-wide)
+   NOTE: For valid HTML5, non-head content usually belongs inside <body>.
+   Leaving it here preserves current behavior; consider moving this block as
+   the first element inside <body> if you want strict validity. *@
+<div class="bg-warning-subtle border-bottom">
+    <div class="container py-2">
+        <div class="alert alert-warning alert-dismissible fade show mb-0 rounded-3 shadow-sm" role="alert">
+            <strong>Demo notice:</strong> The <em>Account</em> section (Register, Login, 2FA, etc.) is only for demonstration and to showcase my development skills only.
+            Please don’t enter real personal information; external providers and codes aren’t connected and the authenticator codes should not be treated as real nor functional.
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+
+<body>
+    <header>
+        @* Responsive top navbar with brand, menu, and login partial. *@
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+            <div class="container">
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Your Personal Calendar App</a>
+
+                <button class="navbar-toggler" type="button"
+                        data-bs-toggle="collapse" data-bs-target=".navbar-collapse"
+                        aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="navbar-collapse collapse d-sm-inline-flex flex-sm-row-reverse">
+                    @* Login/Register/Logout links come from this partial. *@
+                    <partial name="_LoginPartial" />
+                    <ul class="navbar-nav flex-grow-1">
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    @* Main content area. Views render inside @RenderBody(). *@
+    <div class="container">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+    @* Simple footer with current year (UTC). Consider using local time if desired. *@
+    <footer class="border-top footer text-muted">
+        <div class="container">
+            &copy; @DateTime.UtcNow.Year - Your Personal Calendar App -
+            <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+        </div>
+    </footer>
+
+    @* Script order:
+       1. jQuery (required by validation + some plugins)
+       2. Bootstrap 5 bundle (includes Popper; required for modals/dropdowns tooltips)
+       3. Optional libraries (Prism for code highlighting)
+       4. App scripts (site.js, main.js)
+       NOTE: asp-append-version adds a cache-busting query string when the file changes. *@
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+
+    <!-- Bootstrap 5 bundle (keep this; it fixed the modal) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+            crossorigin="anonymous"></script>
+
+    <script src="~/js/prism.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/main.js"></script>
+
+    @* Optional page-specific scripts section that views can fill. *@
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

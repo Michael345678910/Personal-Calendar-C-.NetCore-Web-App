@@ -1,0 +1,173 @@
+﻿@{
+    // Standalone calendar page
+    ViewData["Title"] = "My Calendar";
+}
+<style>
+    /* Tooltip style used by Bootstrap’s JS tooltip in eventDidMount */
+    .popper,
+    .tooltip {
+        position: absolute;
+        z-index: 9999;
+        background: #FFC107;
+        color: black;
+        width: 150px;
+        border-radius: 3px;
+        box-shadow: 0 0 2px rgba(0,0,0,0.5);
+        padding: 10px;
+        text-align: center;
+    }
+
+    /* Outer calendar container */
+    #calendar {
+        max-width: 1100px;
+        margin: 20px auto;
+    }
+</style>
+
+<div class="text-center">
+    <h1 class="display-4">What Events Do We Have Today!</h1>
+    <div id="calendar"></div>
+</div>
+
+<!-- Add Event Modal (Bootstrap 5) -->
+@* NOTE: This modal is shown programmatically on dateClick. *@
+<div class="modal fade" id="eventModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Event</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button> <!-- X -->
+            </div>
+            <div class="modal-body">
+                @* Form posts to EventController.Create (anti-forgery included). *@
+                <form id="eventForm" method="post" action="@Url.Action("Create", "Event")">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="UserId" value="@User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value" />
+
+                    <div class="mb-3">
+                        <label class="form-label" for="eventName">Name</label>
+                        <input class="form-control" id="eventName" name="Event.Name" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="eventDescription">Description</label>
+                        <textarea class="form-control" id="eventDescription" name="Event.Description"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="eventStart">Start</label>
+                        <input class="form-control" id="eventStart" name="Event.StartTime" type="datetime-local" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="eventEnd">End</label>
+                        <input class="form-control" id="eventEnd" name="Event.EndTime" type="datetime-local" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="eventLocation">Location</label>
+                        <input class="form-control" id="eventLocation" name="Location" placeholder="e.g., Office" />
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                @* Click handler below performs AJAX submit and updates the calendar in-place. *@
+                <button type="button" id="addToCalendarBtn" class="btn btn-primary">Add to calendar</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Format a Date to yyyy-MM-ddTHH:mm for <input type="datetime-local">
+        function toLocalInputValue(d) {
+          const pad = n => String(n).padStart(2,'0');
+          return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())
+               +'T'+pad(d.getHours())+':'+pad(d.getMinutes());
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+          // FullCalendar init
+          var calendarEl = document.getElementById('calendar');
+          var calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            events: @Html.Raw(ViewData["Events"]),      // Server-provided events JSON (string)
+            resources: @Html.Raw(ViewData["Resources"]),// Optional server-provided resources JSON (string)
+            headerToolbar: {
+              left: 'today prev,next',
+              center: 'title',
+              right: 'timeGridWeek,dayGridMonth,listMonth'
+            },
+            // Add Bootstrap tooltip for event description when present
+            eventDidMount: function (info) {
+              if (info.event.extendedProps?.description) {
+                new bootstrap.Tooltip(info.el, {
+                  title: info.event.extendedProps.description,
+                  placement: 'top',
+                  trigger: 'hover',
+                  container: 'body'
+                });
+              }
+            },
+            // On day click -> open modal with prefilled times (9–10am local)
+            dateClick: function (info) {
+              const start = new Date(info.date.getFullYear(), info.date.getMonth(), info.date.getDate(), 9, 0, 0);
+              const end   = new Date(info.date.getFullYear(), info.date.getMonth(), info.date.getDate(), 10, 0, 0);
+
+              document.getElementById('eventStart').value = toLocalInputValue(start);
+              document.getElementById('eventEnd').value   = toLocalInputValue(end);
+              document.getElementById('eventName').value = '';
+              document.getElementById('eventDescription').value = '';
+              document.getElementById('eventLocation').value = '';
+
+              const modalEl = document.getElementById('eventModal');
+              const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+              modal.show();  // Show only (hide happens after successful save)
+            }
+          });
+
+          calendar.render();
+
+          // Save button -> POST form, close modal, add event to calendar
+          document.addEventListener('click', async function (e) {
+            if (!e.target.closest('#addToCalendarBtn')) return;
+
+            const form = document.getElementById('eventForm');
+            const formData = new FormData(form);
+            const token = form.querySelector('input[name="__RequestVerificationToken"]')?.value;
+
+            // NOTE: ASP.NET Core default anti-forgery header name is 'RequestVerificationToken'
+            const resp = await fetch(form.action, {
+              method: 'POST',
+              headers: token ? { 'RequestVerificationToken': token } : {},
+              body: formData
+            });
+
+            if (!resp.ok) { alert('Save failed: ' + resp.status); return; }
+
+            const modalEl = document.getElementById('eventModal');
+            (bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl)).hide();
+
+            // Optimistic UI: add the event immediately
+            const title = form.elements['Event.Name'].value;
+            const descr = form.elements['Event.Description'].value;
+            const start = form.elements['Event.StartTime'].value;
+            const end   = form.elements['Event.EndTime'].value;
+
+            calendar.addEvent({
+              title, start, end,
+              extendedProps: { description: descr }
+            });
+          });
+
+          // Debug hooks for modal lifecycle (handy when diagnosing Bootstrap issues)
+          const modalEl = document.getElementById('eventModal');
+          modalEl.addEventListener('show.bs.modal', () => console.log('modal show'));
+          modalEl.addEventListener('shown.bs.modal', () => console.log('modal shown'));
+          modalEl.addEventListener('hide.bs.modal', () => console.log('modal hide'));
+          modalEl.addEventListener('hidden.bs.modal', () => console.log('modal hidden'));
+        });
+    </script>
+}

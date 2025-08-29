@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+	<PropertyGroup>
+		<TargetFramework>net9.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<!-- add -->
+		<Nullable>enable</Nullable>
+		<!-- optional but nice -->
+		<UserSecretsId>aspnet-DotNetCoreCalendar-FA792395-C0D0-47D6-858A-858E36A72A6E</UserSecretsId>
+		<CopyRefAssembliesToPublishDirectory>false</CopyRefAssembliesToPublishDirectory>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<Content Remove="Views\Location\Delete.cshtml" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<!-- REMOVE Microsoft.AspNet.Mvc if it’s still here -->
+		<!-- <PackageReference Include="Microsoft.AspNet.Mvc" Version="5.x.x" /> -->
+
+		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.0" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.0" PrivateAssets="All" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Proxies" Version="9.0.0" />
+		<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.0" />
+		<PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="9.0.0" />
+		<PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="9.0.0" />
+		<PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="9.0.0" />
+	</ItemGroup>
+</Project>
