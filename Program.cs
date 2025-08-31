@@ -1,55 +1,41 @@
-// NOTE: This file uses the .NET 6+ "minimal hosting" model (top-level statements).
-// It wires up Entity Framework Core, ASP.NET Core Identity, MVC/Razor Pages, and route mappings.
+// NOTE: .NET 6+ / .NET 9 minimal hosting Program.cs.
+// Wires up EF Core, Identity, MVC/Razor Pages, and registers the DAL (IDAL -> DAL).
 
 using DotNetCoreCalendar.Data;
 using DotNetCoreCalendar.Models;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 
 var builder = WebApplication.CreateBuilder(args);
 
-IConfiguration configuration = builder.Configuration;
-
 // ----------------------------- Services (DI container) -----------------------------
 
-// Register the application's EF Core DbContext.
-// .UseLazyLoadingProxies() enables EF lazy loading for virtual navigation properties.
-// IMPORTANT: Ensure "DefaultConnection" exists in appsettings.* and points to your DB.
+// EF Core DbContext (SQL Server) + Lazy Loading
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options
-        .UseSqlServer(configuration.GetConnectionString("DefaultConnection"))
+        .UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
         .UseLazyLoadingProxies());
 
-// Configure ASP.NET Core Identity using the custom ApplicationUser entity.
-// RequireConfirmedAccount=false allows immediate sign-in after registration.
-// If you add email confirmation later, change this to true and configure email sender.
+// ASP.NET Core Identity with ApplicationUser
 builder.Services
     .AddDefaultIdentity<ApplicationUser>(options =>
     {
         options.SignIn.RequireConfirmedAccount = false;
-        // TIP: You can harden password rules here (e.g., options.Password.RequiredLength = 8;)
+        // You can tighten password rules here, e.g.:
+        // options.Password.RequiredLength = 8;
+        // options.Password.RequireNonAlphanumeric = true;
     })
-    // Store Identity data in the same ApplicationDbContext registered above.
     .AddEntityFrameworkStores<ApplicationDbContext>();
 
-// Register the Data Access Layer abstraction for app-specific data operations.
+// Register DAL for app data operations (fixes the "no argument for 'db'" ctor error)
 builder.Services.AddScoped<IDAL, DAL>();
 
-// Add MVC controllers with views.
-// In DEBUG, AddRazorRuntimeCompilation() lets you edit .cshtml files and see changes
-// without rebuilding (requires the runtime compilation package).
+// MVC + Razor Pages
 builder.Services.AddControllersWithViews()
 #if DEBUG
     .AddRazorRuntimeCompilation()
 #endif
     ;
-
-// Add Razor Pages (used by Identity UI and any custom pages under /Areas or /Pages).
 builder.Services.AddRazorPages();
 
 var app = builder.Build();
@@ -58,37 +44,31 @@ var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
 {
-    // In production: send unhandled exceptions to /Home/Error view.
     app.UseExceptionHandler("/Home/Error");
-    // Enable HSTS to instruct browsers to prefer HTTPS for 30 days by default.
     app.UseHsts();
 }
 
-// Static middleware and routing stack.
-app.UseHttpsRedirection(); // Redirect HTTP -> HTTPS
-app.UseStaticFiles();      // Serve files from wwwroot/
+app.UseHttpsRedirection();
+app.UseStaticFiles();
 
-app.UseRouting();          // Match incoming requests to endpoints
+app.UseRouting();
 
-app.UseAuthentication();   // Read/validate auth cookies, set HttpContext.User
-app.UseAuthorization();    // Enforce [Authorize] on controllers/pages
+app.UseAuthentication();
+app.UseAuthorization();
 
 // ----------------------------- Endpoint mapping -----------------------------
 
-// Route that allows calling Home actions without specifying the controller explicitly.
-// Example: GET /Privacy -> HomeController.Privacy()
+// Optional convenience route: /Privacy -> HomeController.Privacy()
 app.MapControllerRoute(
     name: "HomeActionOnly",
     pattern: "{action}/{id?}",
     defaults: new { controller = "Home", action = "Index" });
 
-// Conventional default route for controllers.
-// Example: /{controller=Home}/{action=Index}/{id?}
+// Default conventional route
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-// Map Razor Pages endpoints (Identity UI and any custom pages).
 app.MapRazorPages();
 
 app.Run();
