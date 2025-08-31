@@ -1,52 +1,69 @@
 ﻿using DotNetCoreCalendar.Data;
 using DotNetCoreCalendar.Models;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Routing;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace DotNetCoreCalendar.Controllers.ActionFilters
 {
     /// <summary>
-    /// Ensures that only the owner of an Event (by username equality) can access the action.
+    /// Attribute you can place on controllers/actions: [UserAccessOnly]
+    /// Uses TypeFilter to resolve a DI-enabled filter implementation.
     /// </summary>
-    /// <remarks>
-    /// NOTE:
-    /// - This filter new-ups a DAL directly; consider injecting IDAL via DI for testability and proper lifetime.
-    /// - It compares by UserName; comparing by user Id (ClaimTypes.NameIdentifier) is usually safer.
-    /// - Redirect target is "Home/NotFound", but your controller exposes "PageNotFound".
-    ///   Adjust the route if you later change behavior (kept as-is here to avoid code changes).
-    /// </remarks>
-    public class UserAccessOnly : Microsoft.AspNetCore.Mvc.Filters.ActionFilterAttribute, Microsoft.AspNetCore.Mvc.Filters.IActionFilter
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
+    public sealed class UserAccessOnlyAttribute : TypeFilterAttribute
     {
-        private DAL _dal = new DAL();
-
-        public override void OnActionExecuting(Microsoft.AspNetCore.Mvc.Filters.ActionExecutingContext context)
+        public UserAccessOnlyAttribute() : base(typeof(UserAccessOnlyFilter))
         {
-            if (context.RouteData.Values.ContainsKey("id"))
+            // no args needed; constructor dependencies are resolved by DI
+        }
+    }
+
+    /// <summary>
+    /// Actual filter logic, DI-enabled. Ensures the current user owns the Event (by UserName).
+    /// </summary>
+    internal sealed class UserAccessOnlyFilter : IAsyncActionFilter
+    {
+        private readonly IDAL _dal;
+
+        public UserAccessOnlyFilter(IDAL dal)
+        {
+            _dal = dal;
+        }
+
+        public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
+        {
+            // Try to read the {id} route value; if missing or invalid, just continue.
+            if (!context.RouteData.Values.TryGetValue("id", out var idObj) ||
+                !int.TryParse(Convert.ToString(idObj), out var id))
             {
-                int id = int.Parse((string)context.RouteData.Values["id"]);
-                if (context.HttpContext.User != null)
-                {
-                    var username = context.HttpContext.User.Identity.Name;
-                    if (username != null)
-                    {
-                        var myevent = _dal.GetEvent(id);
-                        if (myevent.User != null)
-                        {
-                            if (myevent.User.UserName != username)
-                            {
-                                // NOTE: HomeController currently has PageNotFound() rather than NotFound().
-                                context.Result = new RedirectToRouteResult(new RouteValueDictionary(new { controller = "Home", action = "NotFound" }));
-                            }
-                        }
-                    }
-                }
+                await next();
+                return;
             }
+
+            var username = context.HttpContext?.User?.Identity?.Name;
+            if (string.IsNullOrEmpty(username))
+            {
+                // Not authenticated → behave like the old filter and redirect.
+                context.Result = new RedirectToRouteResult(
+                    new RouteValueDictionary(new { controller = "Home", action = "NotFound" }));
+                return;
+            }
+
+            var myevent = _dal.GetEvent(id);
+            // If the event exists and has an owner, enforce access by username (case-insensitive).
+            if (myevent?.User?.UserName is string owner &&
+                !string.Equals(owner, username, StringComparison.OrdinalIgnoreCase))
+            {
+                context.Result = new RedirectToRouteResult(
+                    new RouteValueDictionary(new { controller = "Home", action = "NotFound" }));
+                return;
+            }
+
+            // Allowed → continue to the action.
+            await next();
         }
     }
 }

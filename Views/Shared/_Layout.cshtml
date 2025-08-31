@@ -17,19 +17,27 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
 </head>
 
-@* Demo banner (site-wide)
-   NOTE: For valid HTML5, non-head content usually belongs inside <body>.
-   Leaving it here preserves current behavior; consider moving this block as
-   the first element inside <body> if you want strict validity. *@
-<div class="bg-warning-subtle border-bottom">
-    <div class="container py-2">
-        <div class="alert alert-warning alert-dismissible fade show mb-0 rounded-3 shadow-sm" role="alert">
-            <strong>Demo notice:</strong> The <em>Account</em> section (Register, Login, 2FA, etc.) is only for demonstration and to showcase my development skills only.
-            Please don’t enter real personal information; external providers and codes aren’t connected and the authenticator codes should not be treated as real nor functional.
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+@{
+        // Only show on Home/Index
+        var ctrl = (ViewContext.RouteData.Values["controller"]?.ToString() ?? "");
+        var act = (ViewContext.RouteData.Values["action"]?.ToString() ?? "");
+        var showBanner = string.Equals(ctrl, "Home", StringComparison.OrdinalIgnoreCase)
+                                    && string.Equals(act, "Index", StringComparison.OrdinalIgnoreCase);
+}
+
+@* Banner section to ensure that users don't enter personal information into the Account Auth/Account section in general'. *@
+@if (showBanner)
+{
+    <div class="bg-warning-subtle border-bottom">
+        <div class="container py-2">
+            <div class="alert alert-warning alert-dismissible fade show mb-0 rounded-3 shadow-sm" role="alert">
+                <strong>Demo notice:</strong> The <em>Account</em> section (Register, Login, 2FA, etc.) is only for demonstration and to showcase my development skills only.
+                Please don’t enter real personal information; external providers links and API codes aren’t connected and the authenticator codes should not be treated as real either; even though they would be functional with a proper API key.
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
         </div>
     </div>
-</div>
+}
 
 <body>
     <header>

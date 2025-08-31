@@ -1,81 +1,93 @@
 ﻿using Microsoft.AspNetCore.Http;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Threading.Tasks;
+using System.Globalization;
 
 namespace DotNetCoreCalendar.Models
 {
     /// <summary>
-    /// Calendar event entity owned by a user and optionally tied to a Location.
+    /// Calendar event owned by an ApplicationUser, optionally linked to a Location.
     /// </summary>
     public class Event
     {
-        /// <summary>Primary key (identity).</summary>
         [Key]
         public int Id { get; set; }
 
-        /// <summary>Event title shown in lists/calendars.</summary>
-        public string Name { get; set; }
+        // Core fields
+        public string Name { get; set; } = string.Empty;
+        public string? Description { get; set; }
 
-        /// <summary>Optional longer description/details.</summary>
-        public string Description { get; set; }
-
-        /// <summary>Start date/time (local or UTC depending on app policy).</summary>
         public DateTime StartTime { get; set; }
-
-        /// <summary>End date/time (should be ≥ <see cref="StartTime"/>).</summary>
         public DateTime EndTime { get; set; }
 
-        // ---------------- Navigation properties ----------------
+        // --------- Relationships ---------
 
         /// <summary>
-        /// Optional location/resource assigned to the event.
-        /// EF creates a shadow FK "LocationId" since there is no explicit LocationId property.
+        /// Nullable FK column to <see cref="Location"/>. Making this explicit (and nullable)
+        /// prevents EF from inventing a shadow property (e.g., LocationId1) and allows
+        /// events to be saved without a location.
         /// </summary>
-        public virtual Location Location { get; set; }
-
-        /// <summary>Owner of the event.</summary>
-        public virtual ApplicationUser User { get; set; }
-
-        // ---------------- Convenience constructors / updaters ----------------
+        public int? LocationId { get; set; }
 
         /// <summary>
-        /// Constructs an event by reading values from an MVC form post.
+        /// Optional navigation to the event's location.
         /// </summary>
-        /// <param name="form">Posted form with keys: "Event.Name", "Event.Description", "Event.StartTime", "Event.EndTime".</param>
-        /// <param name="location">Resolved Location entity (may be null).</param>
-        /// <param name="user">Resolved ApplicationUser owner.</param>
-        /// <remarks>
-        /// Uses DateTime.Parse on raw strings; in production consider using TryParse with culture/time-zone handling and validation.
-        /// </remarks>
-        public Event(IFormCollection form, Location location, ApplicationUser user)
+        [System.ComponentModel.DataAnnotations.Schema.ForeignKey(nameof(LocationId))]
+        public virtual Location? Location { get; set; }
+
+        /// <summary>
+        /// Optional navigation to the owning user.
+        /// (EF will maintain a shadow FK for User unless you also add a UserId string property.)
+        /// </summary>
+        public virtual ApplicationUser? User { get; set; }
+
+        public Event() { }
+
+        /// <summary>
+        /// Construct from a POSTed form (+ resolved location/user).
+        /// Expects keys:
+        ///  - "Event.Name", "Event.Description" (optional)
+        ///  - "Event.StartTime", "Event.EndTime" in yyyy-MM-ddTHH:mm (datetime-local)
+        /// </summary>
+        public Event(IFormCollection form, Location? location, ApplicationUser? user)
         {
-            User = user;
-            Name = form["Event.Name"].ToString();
-            Description = form["Event.Description"].ToString();
-            StartTime = DateTime.Parse(form["Event.StartTime"].ToString());
-            EndTime = DateTime.Parse(form["Event.EndTime"].ToString());
-            Location = location;
+            UpdateFromForm(form, location, user);
         }
 
         /// <summary>
-        /// Updates current event fields using posted form values.
+        /// Update existing entity from a POSTed form.
         /// </summary>
-        public void UpdateEvent(IFormCollection form, Location location, ApplicationUser user)
+        public void UpdateEvent(IFormCollection form, Location? location, ApplicationUser? user)
         {
-            User = user;
-            Name = form["Event.Name"].ToString();
-            Description = form["Event.Description"].ToString();
-            StartTime = DateTime.Parse(form["Event.StartTime"].ToString());
-            EndTime = DateTime.Parse(form["Event.EndTime"].ToString());
-            Location = location;
+            UpdateFromForm(form, location, user);
         }
 
-        /// <summary>Parameterless constructor for EF Core.</summary>
-        public Event()
+        private void UpdateFromForm(IFormCollection form, Location? location, ApplicationUser? user)
         {
+            User = user;
+
+            // Required title
+            Name = form["Event.Name"].ToString();
+
+            // Optional description
+            Description = form["Event.Description"].ToString();
+
+            // Parse datetime-local inputs (accepts with/without seconds)
+            var startStr = form["Event.StartTime"].ToString();
+            var endStr = form["Event.EndTime"].ToString();
+            string[] formats = { "yyyy-MM-dd'T'HH:mm", "yyyy-MM-dd'T'HH:mm:ss" };
+
+            if (!DateTime.TryParseExact(startStr, formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out var start))
+                throw new FormatException($"Invalid start time: {startStr}");
+            if (!DateTime.TryParseExact(endStr, formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out var end))
+                throw new FormatException($"Invalid end time: {endStr}");
+
+            StartTime = start;
+            EndTime = end;
+
+            // Location is optional: assign both the nav and FK consistently
+            Location = location;
+            LocationId = location?.Id;
         }
     }
 }
